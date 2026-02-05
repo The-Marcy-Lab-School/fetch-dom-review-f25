@@ -1,3 +1,5 @@
+const errorMessage = document.querySelector('#error-message');
+
 export const renderRecipes = (recipes) => {
   const recipesList = document.querySelector('#recipes-list');
   const recipeCount = document.querySelector('#recipe-count');
@@ -55,3 +57,16 @@ export const renderRecipeDetails = (recipe) => {
 
   detailsSection.append(h2, img, info, ingredientsH3, ingredientsList);
 };
+
+export const renderError = (msg) => {
+  errorMessage.classList.remove('hidden');
+  errorMessage.textContent = msg;
+  setTimeout(() => {
+    hideError()
+  }, 2000);
+}
+
+export const hideError = () => {
+  errorMessage.textContent = '';
+  errorMessage.classList.add('hidden');
+}

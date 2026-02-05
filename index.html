@@ -19,9 +19,9 @@
     </section>
 
     <section>
-      <h2 id="recipes-heading">Recipes (<span id="recipe-count">0</span>)</h2>
+      <!-- It is often a good idea to put in some backup elements in case the fetch fails -->
+      <h2>Recipes (<span id="recipe-count">1</span>)</h2>
       <ul id="recipes-list">
-        <!-- It is often a good idea to put in some backup elements in case the fetch fails -->
         <li data-recipe-id="1">
           <img src="https://cdn.dummyjson.com/recipe-images/1.webp" alt="Classic Margherita Pizza">
           <h3>Classic Margherita Pizza</h3>
@@ -30,8 +30,9 @@
       </ul>
     </section>
     
+    <!-- Carve out some space to display status messages. Also hidden by default -->
     <section>
-      <p id="error-message"></p>
+      <p id="error-message" class="hidden"></p>
     </section>
   </main>
 
