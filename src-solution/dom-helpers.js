@@ -30,11 +30,9 @@ export const renderRecipes = (recipes) => {
 };
 
 export const renderRecipeDetails = (recipe) => {
-  detailsSection.classList.remove('hidden');
-
   // Clear old details and show the section
+  detailsSection.classList.remove('hidden');
   detailsSection.innerHTML = '';
-  detailsSection.removeAttribute('hidden');
 
   const h2 = document.createElement('h2');
   h2.textContent = recipe.name;
@@ -62,9 +60,6 @@ export const renderRecipeDetails = (recipe) => {
 export const renderError = (msg) => {
   errorMessage.classList.remove('hidden');
   errorMessage.textContent = msg;
-  setTimeout(() => {
-    hideError()
-  }, 2000);
 }
 
 export const hideError = () => {

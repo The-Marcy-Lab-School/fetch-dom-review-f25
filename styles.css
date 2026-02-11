@@ -20,11 +20,61 @@ main {
   gap: 1rem;
 }
 
-h2 {}
+section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 
 #error-message {
   color: red;
   min-height: 1.25rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: start;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+label {
+  font-weight: bold;
+}
+
+input {
+  line-height: 1.5rem;
+  padding: 0.25rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+#quick-field {
+  flex-direction: row;
+}
+
+form button {
+  padding: 8px 20px;
+  background-color: rgb(36, 138, 255);
+  border: none;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+}
+
+form button:hover {
+  background-color: rgb(22, 112, 215);
+}
+
+form button:active {
+  transform: translate(1px, 1px)
 }
 
 #recipes-list {
@@ -57,12 +107,6 @@ h2 {}
 
 #recipes-list h3 {
   font-size: 0.9rem;
-}
-
-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
 }
 
 #recipe-details {

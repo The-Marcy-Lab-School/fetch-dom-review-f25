@@ -28,3 +28,18 @@ export const getRecipeById = (id) => {
       return null;
     });
 };
+
+export const getRecipeBySearchTerm = async (searchTerm) => {
+  try {
+    const response = await fetch(`https://dummyjson.com/recipes/search?q=${searchTerm}`)
+    if (!response.ok) {
+      throw Error(`Fetch failed. ${response.status} ${response.statusText}`);
+    }
+    const data = await response.json();
+    return { data: data.recipes, error: null };
+  }
+  catch (error) {
+    console.error(error.message);
+    return { data: null, error };
+  }
+}
