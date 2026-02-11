@@ -6,6 +6,9 @@ A live-coding review app that covers DOM manipulation, fetching with `.then()`/`
 
 - [Setup](#setup)
 - [Overview](#overview)
+- [Explore the Solution](#explore-the-solution)
+  - [Trace the Flow](#trace-the-flow)
+  - [Guided Reading Questions](#guided-reading-questions)
 - [Building from Scratch](#building-from-scratch)
   - [Step 0: Tour the starter and solution code](#step-0-tour-the-starter-and-solution-code)
   - [Step 1: Create `src/fetch-helpers.js` - fetch a list of recipes](#step-1-create-srcfetch-helpersjs---fetch-a-list-of-recipes)
@@ -18,9 +21,6 @@ A live-coding review app that covers DOM manipulation, fetching with `.then()`/`
   - [Step 8: Add `getRecipeBySearchTerm` with `async`/`await`](#step-8-add-getrecipebysearchterm-with-asyncawait)
   - [Step 9: Add the search form handler in `main.js`](#step-9-add-the-search-form-handler-in-mainjs)
   - [Step 10 (Bonus): Add error rendering](#step-10-bonus-add-error-rendering)
-- [Explore the Solution](#explore-the-solution)
-  - [Trace the Flow](#trace-the-flow)
-  - [Guided Reading Questions](#guided-reading-questions)
 - [Concepts Checklist](#concepts-checklist)
 
 
@@ -42,6 +42,97 @@ The process for creating an interactive and data-driven user interface typically
    - User click -> fetch -> render
    - Form submit -> extract form data -> fetch -> render
 
+## Explore the Solution
+
+The completed solution is in `src-solution/`. Use the exercises below to investigate how the code works before building it from scratch.
+
+### Trace the Flow
+
+For each scenario, trace the path through the code across files. Write each function call and what it does, in order.
+
+**Scenario 1: The page loads**
+
+Start at `main.js` line 5. Follow `getRecipes()` into `fetch-helpers.js`, then back into `renderRecipes()` in `dom-helpers.js`.
+
+**Scenario 2: A user clicks a recipe card**
+
+Start at the click handler in `main.js`. Track `event.target.closest('li')`, `li.dataset.recipeId`, `getRecipeById(...)`, and `renderRecipeDetails(...)`.
+
+**Scenario 3: A user submits the search form**
+
+Start at the submit handler in `main.js`. Track form value extraction, `getRecipeBySearchTerm(...)`, error/no-results/success branches, optional quick filtering, and final rendering.
+
+**Scenario 4: Search fails**
+
+Assume `/recipes/search` fails. Follow the `error` path returned by `getRecipeBySearchTerm(...)` and explain what is rendered and why the message remains visible until a later success branch calls `hideError()`.
+
+### Guided Reading Questions
+
+Open each file and answer the questions.
+
+**`index.html`**
+1. What does `type="module"` on the `<script>` tag enable?
+2. Find the fallback recipe card in the `ul`. What will happen to it once JavaScript loads successfully?
+3. Which elements start with `class="hidden"`? Why would we hide them by default?
+4. What `data-` attribute is on the fallback `<li>`? What value does it have?
+
+**<details><summary>Answers</summary>**
+
+1. It enables ES modules in the browser, so we can use `import` / `export` in JavaScript files.
+2. It gets removed when `renderRecipes` runs, because `recipesList.innerHTML = ''` clears the list before new cards are appended.
+3. `#recipe-details` and `#error-message` start hidden so details and errors only appear when relevant user actions or failures occur.
+4. The fallback card has `data-recipe-id="1"`.
+
+</details>
+
+**`src-solution/fetch-helpers.js`**
+1. What does `getRecipes` resolve to if the fetch succeeds? What does it resolve to if the fetch fails?
+2. What kind of errors does checking `response.ok` handle that `.catch()` does not handle on its own?
+3. The API returns an object like `{ recipes: [...], total: 50, ... }`. In `getRecipes`, where is just the recipe array extracted, and what would break if we returned the full object instead?
+4. `getRecipeById` and `getRecipes` follow the same pattern. What is the one structural difference between them? Why doesn't `getRecipeById` need a second `.then()`?
+5. Compare and contrast `getRecipeBySearchTerm` with the other fetch helpers. What are the benefits/tradeoffs of using `async`/`await` + `try`/`catch` and returning `{ data, error }`? Which style of handling promises do you prefer?
+
+**<details><summary>Answers</summary>**
+
+1. It resolves to `data.recipes` (an array) on success, and resolves to `null` on failure.
+2. It handles HTTP failure responses (like 404/500) that do not reject `fetch` by default. `.catch()` alone only handles rejected Promises (network/throw errors).
+3. It is extracted in the second `.then((data) => { return data.recipes; })`. If we returned the full object, code expecting an array (like `renderRecipes(recipes)` and `recipes.length` / `forEach`) would break.
+4. `getRecipes` has an extra `.then` to extract `data.recipes`; `getRecipeById` does not because that endpoint already returns a single recipe object directly.
+5. `async`/`await` can be easier to read and debug for sequential logic, and `{ data, error }` gives a consistent result shape. Tradeoff: it introduces a different return contract from the other helpers (`null`), so callers must handle two patterns. It is best to stick to one pattern so choose your preference!
+
+</details>
+
+**`src-solution/dom-helpers.js`**
+1. Why does `renderRecipes` clear `#recipes-list` before rendering?
+2. Why does `renderRecipeDetails` remove the `hidden` class?
+3. What is the difference between `renderError` and `hideError`?
+4. What does `li.dataset.recipeId = recipe.id` add to the DOM, what is that value used for later, and why store it on each card?
+
+**<details><summary>Answers</summary>**
+
+1. To remove old/fallback content before rendering new results and avoid duplicate cards.
+2. The details section is hidden by default, so removing `hidden` makes the selected recipe details visible.
+3. `renderError(msg)` shows the error element and sets text. `hideError()` clears text and hides it.
+4. It adds a `data-recipe-id` attribute on each `li`. Later, the click handler reads `li.dataset.recipeId` to call `getRecipeById(...)` with the id of the clicked item. Storing it on each card keeps the card tied to its API ID for event-driven fetching.
+
+</details>
+
+**`src-solution/main.js`**
+1. What are the three actions that can trigger a fetch in this file?
+2. Where is event delegation used, and why?
+3. Where is the search form handled, and why is the handler `async`?
+4. Where does the quick filter (`Under 20 Minutes`) apply?
+5. In which branches is `hideError()` called?
+
+**<details><summary>Answers</summary>**
+
+1. Initial page load (`getRecipes`), clicking a recipe card (`getRecipeById`), and submitting the search form (`getRecipeBySearchTerm`).
+2. On `#recipes-list` click. One parent listener handles clicks on dynamically rendered cards, including clicks on child elements via `closest('li')`.
+3. In the `submit` handler for `#search-form`; it is `async` because it awaits `getRecipeBySearchTerm(...)`.
+4. In the search success branch, after fetch resolves: if `isQuick` is true, results are filtered by total prep + cook time <= 20.
+5. In three success branches: after successful initial load, after successful recipe-details fetch, and after successful search before rendering results.
+
+</details>
 
 ## Building from Scratch
 
@@ -350,98 +441,6 @@ else {
   renderRecipes(recipes);
 }
 ```
-
-## Explore the Solution
-
-The completed solution is in `src-solution/`. Use the exercises below to investigate how the code works before building it from scratch.
-
-### Trace the Flow
-
-For each scenario, trace the path through the code across files. Write each function call and what it does, in order.
-
-**Scenario 1: The page loads**
-
-Start at `main.js` line 5. Follow `getRecipes()` into `fetch-helpers.js`, then back into `renderRecipes()` in `dom-helpers.js`.
-
-**Scenario 2: A user clicks a recipe card**
-
-Start at the click handler in `main.js`. Track `event.target.closest('li')`, `li.dataset.recipeId`, `getRecipeById(...)`, and `renderRecipeDetails(...)`.
-
-**Scenario 3: A user submits the search form**
-
-Start at the submit handler in `main.js`. Track form value extraction, `getRecipeBySearchTerm(...)`, error/no-results/success branches, optional quick filtering, and final rendering.
-
-**Scenario 4: Search fails**
-
-Assume `/recipes/search` fails. Follow the `error` path returned by `getRecipeBySearchTerm(...)` and explain what is rendered and why the message remains visible until a later success branch calls `hideError()`.
-
-### Guided Reading Questions
-
-Open each file and answer the questions.
-
-**`index.html`**
-1. What does `type="module"` on the `<script>` tag enable?
-2. Find the fallback recipe card in the `ul`. What will happen to it once JavaScript loads successfully?
-3. Which elements start with `class="hidden"`? Why would we hide them by default?
-4. What `data-` attribute is on the fallback `<li>`? What value does it have?
-
-**<details><summary>Answers</summary>**
-
-1. It enables ES modules in the browser, so we can use `import` / `export` in JavaScript files.
-2. It gets removed when `renderRecipes` runs, because `recipesList.innerHTML = ''` clears the list before new cards are appended.
-3. `#recipe-details` and `#error-message` start hidden so details and errors only appear when relevant user actions or failures occur.
-4. The fallback card has `data-recipe-id="1"`.
-
-</details>
-
-**`src-solution/fetch-helpers.js`**
-1. What does `getRecipes` resolve to if the fetch succeeds? What does it resolve to if the fetch fails?
-2. What kind of errors does checking `response.ok` handle that `.catch()` does not handle on its own?
-3. The API returns an object like `{ recipes: [...], total: 50, ... }`. In `getRecipes`, where is just the recipe array extracted, and what would break if we returned the full object instead?
-4. `getRecipeById` and `getRecipes` follow the same pattern. What is the one structural difference between them? Why doesn't `getRecipeById` need a second `.then()`?
-5. Compare and contrast `getRecipeBySearchTerm` with the other fetch helpers. What are the benefits/tradeoffs of using `async`/`await` + `try`/`catch` and returning `{ data, error }`? Which style of handling promises do you prefer?
-
-**<details><summary>Answers</summary>**
-
-1. It resolves to `data.recipes` (an array) on success, and resolves to `null` on failure.
-2. It handles HTTP failure responses (like 404/500) that do not reject `fetch` by default. `.catch()` alone only handles rejected Promises (network/throw errors).
-3. It is extracted in the second `.then((data) => { return data.recipes; })`. If we returned the full object, code expecting an array (like `renderRecipes(recipes)` and `recipes.length` / `forEach`) would break.
-4. `getRecipes` has an extra `.then` to extract `data.recipes`; `getRecipeById` does not because that endpoint already returns a single recipe object directly.
-5. `async`/`await` can be easier to read and debug for sequential logic, and `{ data, error }` gives a consistent result shape. Tradeoff: it introduces a different return contract from the other helpers (`null`), so callers must handle two patterns. It is best to stick to one pattern so choose your preference!
-
-</details>
-
-**`src-solution/dom-helpers.js`**
-1. Why does `renderRecipes` clear `#recipes-list` before rendering?
-2. Why does `renderRecipeDetails` remove the `hidden` class?
-3. What is the difference between `renderError` and `hideError`?
-4. What does `li.dataset.recipeId = recipe.id` add to the DOM, what is that value used for later, and why store it on each card?
-
-**<details><summary>Answers</summary>**
-
-1. To remove old/fallback content before rendering new results and avoid duplicate cards.
-2. The details section is hidden by default, so removing `hidden` makes the selected recipe details visible.
-3. `renderError(msg)` shows the error element and sets text. `hideError()` clears text and hides it.
-4. It adds a `data-recipe-id` attribute on each `li`. Later, the click handler reads `li.dataset.recipeId` to call `getRecipeById(...)` with the id of the clicked item. Storing it on each card keeps the card tied to its API ID for event-driven fetching.
-
-</details>
-
-**`src-solution/main.js`**
-1. What are the three actions that can trigger a fetch in this file?
-2. Where is event delegation used, and why?
-3. Where is the search form handled, and why is the handler `async`?
-4. Where does the quick filter (`Under 20 Minutes`) apply?
-5. In which branches is `hideError()` called?
-
-**<details><summary>Answers</summary>**
-
-1. Initial page load (`getRecipes`), clicking a recipe card (`getRecipeById`), and submitting the search form (`getRecipeBySearchTerm`).
-2. On `#recipes-list` click. One parent listener handles clicks on dynamically rendered cards, including clicks on child elements via `closest('li')`.
-3. In the `submit` handler for `#search-form`; it is `async` because it awaits `getRecipeBySearchTerm(...)`.
-4. In the search success branch, after fetch resolves: if `isQuick` is true, results are filtered by total prep + cook time <= 20.
-5. In three success branches: after successful initial load, after successful recipe-details fetch, and after successful search before rendering results.
-
-</details>
 
 ## Concepts Checklist
 
