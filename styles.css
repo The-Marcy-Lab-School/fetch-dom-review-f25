@@ -20,6 +20,8 @@ main {
   gap: 1rem;
 }
 
+h2 {}
+
 #error-message {
   color: red;
   min-height: 1.25rem;
@@ -57,10 +59,13 @@ main {
   font-size: 0.9rem;
 }
 
-#recipe-details {
+section {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+#recipe-details {
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 1rem;

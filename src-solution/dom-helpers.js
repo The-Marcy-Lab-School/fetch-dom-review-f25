@@ -10,6 +10,8 @@ export const renderRecipes = (recipes) => {
 
   recipes.forEach((recipe) => {
     const li = document.createElement('li');
+
+    // store the recipe id to make fetching its data easier
     li.dataset.recipeId = recipe.id;
 
     const img = document.createElement('img');
